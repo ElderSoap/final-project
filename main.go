@@ -4,15 +4,22 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	db "github.com/eldersoap/filnal-project/pkg/db"
 )
 
 func main() {
 	fmt.Println("Запуск сервера...")
+
+	dbFile := "scheduler.db"
+	if err := db.InitDB(dbFile); err != nil {
+		log.Fatalf("Ошибка инициализации базы данных: %v", err)
+	}
+
+	defer db.Close()
+
 	webDir := "web"
 	http.Handle("/", http.FileServer(http.Dir(webDir)))
-
-	// если install равен true, после открытия БД требуется выполнить
-	// sql-запрос с CREATE TABLE и CREATE INDEX
 
 	addr := ":7540"
 	fmt.Printf("Сервер запущен: http://localhost%s/\n", addr)
