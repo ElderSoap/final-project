@@ -15,13 +15,11 @@ func main() {
 	if err := db.InitDB(dbFile); err != nil {
 		log.Fatalf("Ошибка инициализации базы данных: %v", err)
 	}
-
+	api.Init()
 	defer db.Close()
 
 	webDir := "web"
 	http.Handle("/", http.FileServer(http.Dir(webDir)))
-
-	api.Init()
 
 	addr := ":7540"
 	fmt.Printf("Сервер запущен: http://localhost%s/\n", addr)

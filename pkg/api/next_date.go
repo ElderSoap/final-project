@@ -13,6 +13,9 @@ const DateFormat = "20060102"
 
 // afterNow проверяет, что дата date > now (без учёта времени)
 func afterNow(date, now time.Time) bool {
+	date = date.Truncate(24 * time.Hour) // обрезаем время
+	now = now.Truncate(24 * time.Hour)   // обрезаем время
+
 	return date.After(now)
 }
 
