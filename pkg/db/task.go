@@ -16,3 +16,25 @@ func AddTask(t *Task) (int64, error) {
 	}
 	return res.LastInsertId()
 }
+
+func Tasks(limit int) ([]*Task, error) {
+	query := `SELECT id, date, title, comment, repeat FROM scheduler ORDER BY date DESC LIMIT ?`
+	rows, err := DB.Query(query, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tasks []*Task
+	for rows.Next() {
+		t := &Task{}
+		if err := rows.Scan(&t.ID, &t.Date, &t.Title, &t.Comment, &t.Repeat); err != nil {
+			return nil, err
+		}
+		tasks = append(tasks, t)
+	}
+	if tasks == nil {
+		tasks = []*Task{}
+	}
+	return tasks, nil
+}
