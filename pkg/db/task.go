@@ -1,5 +1,10 @@
 package db
 
+import (
+	"database/sql"
+	"fmt"
+)
+
 type Task struct {
 	ID      string `json:"id"`
 	Date    string `json:"date"`
@@ -37,4 +42,39 @@ func Tasks(limit int) ([]*Task, error) {
 		tasks = []*Task{}
 	}
 	return tasks, nil
+}
+func GetTask(id string) (*Task, error) {
+	t := &Task{}
+	var tid int
+	err := DB.QueryRow(`
+        SELECT id, date, title, comment, repeat
+        FROM scheduler WHERE id = ?`, id).Scan(&tid, &t.Date, &t.Title, &t.Comment, &t.Repeat)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("Задача не найдена")
+		}
+		return nil, err
+	}
+	t.ID = fmt.Sprintf("%d", tid)
+	return t, nil
+}
+func UpdateTask(t *Task) error {
+	query := `
+        UPDATE scheduler 
+        SET date = ?, title = ?, comment = ?, repeat = ?
+        WHERE id = ?`
+	res, err := DB.Exec(query, t.Date, t.Title, t.Comment, t.Repeat, t.ID)
+	if err != nil {
+		return err
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		return fmt.Errorf("Задача не найдена")
+	}
+
+	return nil
 }

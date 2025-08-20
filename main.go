@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	api "github.com/eldersoap/filnal-project/pkg/api"
+	"github.com/eldersoap/filnal-project/pkg/api"
 	db "github.com/eldersoap/filnal-project/pkg/db"
 )
 

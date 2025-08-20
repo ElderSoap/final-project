@@ -2,8 +2,10 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
+	"regexp"
 	"time"
 
 	"github.com/eldersoap/filnal-project/pkg/db"
@@ -26,8 +28,8 @@ func addTaskHandle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Проверка: обязательное поле Title
-	if task.Title == "" {
-		writeJSON(w, map[string]string{"error": "Не указан заголовок задачи"})
+	if err := validateTask(&task); err != nil {
+		http.Error(w, fmt.Sprintf(`{"error":"%s"}`, err.Error()), http.StatusBadRequest)
 		return
 	}
 
@@ -83,4 +85,22 @@ func checkDate(task *db.Task) error {
 func writeJSON(w http.ResponseWriter, data any) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	json.NewEncoder(w).Encode(data)
+}
+func validateTask(t *db.Task) error {
+	if t.Title == "" {
+		return errors.New("Заголовок обязателен")
+	}
+
+	if _, err := time.Parse("20060102", t.Date); err != nil {
+		return errors.New("Некорректная дата, используйте формат YYYYMMDD")
+	}
+
+	if t.Repeat != "" {
+		matched, _ := regexp.MatchString(`^(?:[dwmy]|[dwmy]\s+\d+)$`, t.Repeat)
+		if !matched {
+			return errors.New("Некорректное поле repeat")
+		}
+	}
+
+	return nil
 }
