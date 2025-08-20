@@ -11,7 +11,8 @@ import (
 
 const DateFormat = "20060102"
 
-// afterNow проверяет, что дата date > now (без учёта времени)
+// проверяет, что дата date > now (без учёта времени)
+// возвращает true, если дата больше текущей
 func afterNow(date, now time.Time) bool {
 	date = date.Truncate(24 * time.Hour) // обрезаем время
 	now = now.Truncate(24 * time.Hour)   // обрезаем время
@@ -20,14 +21,15 @@ func afterNow(date, now time.Time) bool {
 }
 
 // NextDate вычисляет следующую дату по правилу repeat
+// принимает текущую дату now, начальную дату dstart и правило повторения repeat
 func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 	if repeat == "" {
-		return "", errors.New("repeat rule is empty")
+		return "", errors.New("повторение не указано")
 	}
 
 	start, err := time.Parse(DateFormat, dstart)
 	if err != nil {
-		return "", fmt.Errorf("invalid start date: %w", err)
+		return "", fmt.Errorf("неккорректная дата начала: %w", err)
 	}
 
 	parts := strings.Split(repeat, " ")
@@ -36,11 +38,11 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 	switch rule {
 	case "d":
 		if len(parts) != 2 {
-			return "", errors.New("invalid format for d rule")
+			return "", errors.New("неккорректный формат правила для дней")
 		}
 		interval, err := strconv.Atoi(parts[1])
 		if err != nil || interval <= 0 || interval > 400 {
-			return "", errors.New("invalid day interval")
+			return "", errors.New("неккорректное значение дней")
 		}
 
 		date := start
@@ -53,7 +55,7 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 
 	case "y":
 		if len(parts) != 1 {
-			return "", errors.New("invalid format for y rule")
+			return "", errors.New("неккорректный формат правила для лет")
 		}
 		date := start
 		for {
@@ -64,11 +66,11 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 		}
 
 	default:
-		return "", errors.New("unsupported repeat rule")
+		return "", errors.New("неподдерживаемое правило повторения")
 	}
 }
 
-// HTTP-обработчик /api/nextdate
+// обработчик для обновления задачи, по правилу повторения
 func nextDateHandler(w http.ResponseWriter, r *http.Request) {
 	nowStr := r.FormValue("now")
 	dstart := r.FormValue("date")

@@ -56,7 +56,7 @@ func checkDate(task *db.Task) error {
 	// Проверяем формат даты
 	t, err := time.Parse("20060102", task.Date)
 	if err != nil {
-		return fmt.Errorf("дата должна быть в формате 20060102")
+		return fmt.Errorf("дата должна быть в формате YYYYMMDD")
 	}
 
 	// Если указано правило повторения → проверим его
@@ -86,19 +86,21 @@ func writeJSON(w http.ResponseWriter, data any) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	json.NewEncoder(w).Encode(data)
 }
+
+// validateTask проверяет корректность задачи
 func validateTask(t *db.Task) error {
 	if t.Title == "" {
-		return errors.New("Заголовок обязателен")
+		return errors.New("заголовок обязателен")
 	}
 
 	if _, err := time.Parse("20060102", t.Date); err != nil {
-		return errors.New("Некорректная дата, используйте формат YYYYMMDD")
+		return errors.New("некорректная дата, используйте формат YYYYMMDD")
 	}
 
 	if t.Repeat != "" {
 		matched, _ := regexp.MatchString(`^(?:[dwmy]|[dwmy]\s+\d+)$`, t.Repeat)
 		if !matched {
-			return errors.New("Некорректное поле repeat")
+			return errors.New("некорректное поле повторения")
 		}
 	}
 

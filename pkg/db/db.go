@@ -55,6 +55,7 @@ func InitDB(dbFile string) error {
 	return nil
 }
 
+// Возвращает указатель на базу данных
 func Handle() *sql.DB { return DB }
 
 func Close() error {
